@@ -1,88 +1,60 @@
 const getPrompt = (prompt) => {
   return `
-    You are a Playwright automation expert. Convert natural language instructions into structured step objects for web automation.
-  
-  Output Format
-  
-  Each step should be a JavaScript object with these properties:
-  
-  
-  
-  action: The action type ('click', 'type', 'press', 'wait')
-  
-  selector: CSS selector or element identifier
-  
-  value: (optional) Text to type or key to press
-  
-  
-  
-  Action Types
-  
-  
-  
-  click: Click on an element
-  
-  type: Enter text into an input field
-  
-  press: Press a keyboard key
-  
-  wait: Wait for an element to appear
-  
-  
-  
-  Selector Guidelines
-  
-  
-  
-  Use #elementId for elements with IDs
-  
-  Use input[name="fieldname"] for form inputs
-  
-  Use .classname for CSS classes
-  
-  Use button[type="submit"] for specific button types
-  
-  Use a[href*="text"] for links containing specific text
-  
-  
-  
-  Example Input:
-  
-  "write email and password in the input field, both have id with the same name and then press enter"
-  
-  Example Output:
-  
-  javascript[
-  
-    { action: 'type', selector: '#email', value: 'user@example.com' },
-  
-    { action: 'type', selector: '#password', value: 'yourpassword' },
-  
+   You are a Playwright automation expert.  
+Convert the natural‑language task below into **one JavaScript object** with:
+
+• **steps** — an array of step objects  
+• **audioScript** — one continuous narration string explaining each step in order
+
+-------------------------------------------------
+📝 Object shape
+
+\`\`\`javascript
+{
+  steps: [
+    { action: 'type',  selector: '#email',    value: 'user@example.com' },
+    { action: 'press', selector: '#email',    value: 'Enter' }
+  ],
+  audioScript: "Now I am typing the user's email into the input field (#email). Next, I am pressing Enter to submit the form."
+}
+\`\`\`
+
+-------------------------------------------------
+🎯 Allowed actions  
+(click | type | press | wait)
+
+🕵️ Selector guidelines  
+#id · input[name="field"] · .class · button[type="submit"] · a[href*="text"]
+
+📏 Rules  
+1. Use the most specific selector when an ID or name is given.  
+2. For “press enter”, use action 'press' with value 'Enter'.  
+3. If no selector is provided, choose a sensible generic one (e.g., input[type="email"]).  
+4. Provide realistic example values for text input.  
+5. **Output only the JavaScript object**—no comments, explanations, or extra text.  
+6. Concatenate all narration into a single coherent sentence or paragraph inside \`audioScript\`.
+
+-------------------------------------------------
+🔤 Example input  
+> write email and password in the input field, both have id with the same name and then press enter
+
+🔢 Example output  
+\`\`\`javascript
+{
+  steps: [
+    { action: 'type',  selector: '#email',    value: 'user@example.com' },
+    { action: 'type',  selector: '#password', value: 'yourPassword123' },
     { action: 'press', selector: '#password', value: 'Enter' }
-  
-  ]
-  
-  Instructions:
-  
-  Convert the following natural language instruction into structured steps:
-  
-  ${prompt}
-  
-  Rules:
-  
-  
-  
-  Always use specific selectors when element IDs or names are mentioned
-  
-  For "press enter", use the 'press' action with value 'Enter'
-  
-  If no specific selector is mentioned, use common patterns like input[type="email"], input[type="password"], etc.
-  
-  Include realistic example values for text inputs
-  
-  Only output the JavaScript array of step objects
-  
-  Don't include explanatory text, just the code
+  ],
+  audioScript: "Now I am typing the user's email into the input field (#email). Then I am typing the user's password into the input field (#password). Finally, I am pressing Enter to submit the form."
+}
+\`\`\`
+
+-------------------------------------------------
+Convert the following instruction into the required object:
+
+
+${prompt}
     `;
 };
 
@@ -118,7 +90,27 @@ function convertAIResponseToSteps(aiResponse) {
     return null;
   }
 }
+function parseAutomationSnippet(raw) {
+  // 1️⃣ Trim back‑ticks and possible ```javascript fences
+  const cleaned = raw
+    .replace(/^```(?:\w+)?/m, "") // opening fence
+    .replace(/```$/m, "") // closing fence
+    .trim();
+
+  // 2️⃣ Wrap in parentheses so `eval` reads it as an *expression*,
+  //    not a block statement.
+  const wrapped = `(${cleaned})`;
+
+  // 3️⃣ Use Function constructor instead of direct eval
+  //    (slightly safer, avoids current scope leakage).
+  try {
+    return Function(`"use strict"; return ${wrapped}`)();
+  } catch (err) {
+    throw new Error("Snippet could not be parsed. Check its syntax.");
+  }
+}
 module.exports = {
   convertAIResponseToSteps,
   getPrompt,
+  parseAutomationSnippet,
 };

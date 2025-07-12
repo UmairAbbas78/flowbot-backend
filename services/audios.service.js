@@ -31,6 +31,7 @@ async function mergeAudioWithVideo(videoPath, audioPath, outputPath) {
       ])
       .on('end', () => resolve(outputPath))
       .on('error', err => {
+        console.log('❌ ------->', err);
         console.error('❌ FFmpeg merge failed:', err.message);
         reject(err);
       })

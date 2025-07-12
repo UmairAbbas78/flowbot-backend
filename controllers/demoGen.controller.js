@@ -7,7 +7,11 @@ const {
   AUDIO_DIR,
 } = require("../services/audios.service");
 const path = require("path");
-const { getPrompt, convertAIResponseToSteps } = require("../utils");
+const {
+  getPrompt,
+  convertAIResponseToSteps,
+  parseAutomationSnippet,
+} = require("../utils");
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.triggerDemo = async (req, res) => {
@@ -25,19 +29,30 @@ exports.triggerDemo = async (req, res) => {
     console.log("Waiting for the ai response...");
     const explanation = result.response.text();
     console.log("Explanation:", explanation);
-    const steps = convertAIResponseToSteps(explanation);
-    console.log("Steps:", steps);
-    const demoDoc = new Demo({ prompt, explanation, url });
+    const raw = parseAutomationSnippet(explanation);
+    console.log("Steps:", raw);
+    const demoDoc = new Demo({ prompt, explanation: raw.explanation, url });
     await demoDoc.save();
 
     const videoPath = await runDemo({
       url,
       prompt,
       demoId: demoDoc._id,
-      steps,
+      steps: raw.steps,
     });
 
-    demoDoc.videoPath = videoPath;
+    // Step 2: Generate audio from explanation
+    const audioPath = path.join(AUDIO_DIR, `${demoDoc._id}.mp3`);
+    await generateTTS(raw.audioScript, audioPath);
+
+    // Step 3: Merge audio + video into final .mp4
+    const finalVideoPath = path.join(
+      path.dirname(videoPath),
+      `${demoDoc._id}.mp4`
+    );
+    await mergeAudioWithVideo(videoPath, audioPath, finalVideoPath);
+
+    demoDoc.videoPath = `/videos/${path.basename(finalVideoPath)}`;
     await demoDoc.save();
 
     res.json({
