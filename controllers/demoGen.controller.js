@@ -15,7 +15,7 @@ const {
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.triggerDemo = async (req, res) => {
-  const { url, prompt } = req.body;
+  const { url, prompt, appName } = req.body;
 
   console.log("Generating your demo....");
   console.log(JSON.stringify({ url, prompt }, null, 2));
@@ -31,7 +31,7 @@ exports.triggerDemo = async (req, res) => {
     console.log("Explanation:", explanation);
     const raw = parseAutomationSnippet(explanation);
     console.log("Steps:", raw);
-    const demoDoc = new Demo({ prompt, explanation: raw.explanation, url });
+    const demoDoc = new Demo({ prompt, explanation: raw.explanation, url, appName });
     await demoDoc.save();
 
     const videoPath = await runDemo({
@@ -68,7 +68,7 @@ exports.triggerDemo = async (req, res) => {
 };
 
 exports.recordManualDemo = async (req, res) => {
-  const { url, explanation, steps } = req.body;
+  const { url, explanation, steps, appName } = req.body;
 
   if (!url || !explanation || !Array.isArray(steps)) {
     return res
@@ -78,7 +78,7 @@ exports.recordManualDemo = async (req, res) => {
 
   try {
     // Save base demo entry
-    const demoDoc = new Demo({ url, explanation, steps });
+    const demoDoc = new Demo({ url, explanation, prompt:steps.join("\n"), appName: "manual" });
     await demoDoc.save();
 
     // Step 1: Record video
@@ -108,5 +108,31 @@ exports.recordManualDemo = async (req, res) => {
   } catch (err) {
     console.error("❌ Error in manual demo:", err);
     res.status(500).json({ error: "Failed to record demo" });
+  }
+};
+
+
+exports.getAllDemos = async (req, res) => {
+  try {
+    console.log("Fetching all demos...");
+    const demos = await Demo.find().sort({ createdAt: -1 });
+    res.json(demos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch demos" });
+  }
+};
+
+exports.getDemoById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const demo = await Demo.findById(id);
+    if (!demo) {
+      return res.status(404).json({ error: "Demo not found" });
+    }
+    res.json(demo);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch demo" });
   }
 };

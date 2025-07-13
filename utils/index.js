@@ -1,10 +1,10 @@
 const getPrompt = (prompt) => {
   return `
-   You are a Playwright automation expert.  
+   You are a Playwright automation expert. You'll generate a video demo for a web app using Playwright and Text-to-Speech. 
 Convert the natural‑language task below into **one JavaScript object** with:
 
-• **steps** — an array of step objects  
-• **audioScript** — one continuous narration string explaining each step in order
+• **steps** — an array of step objects make sure to add waiting steps where necessary to make it synced with audio script.
+• **audioScript** — one continuous narration string explaining each step in order making sure you're adding ample gaps between steps.
 
 -------------------------------------------------
 📝 Object shape
