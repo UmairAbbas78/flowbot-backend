@@ -1,6 +1,6 @@
 🧠 FlowBot: AI-Powered Interactive Demo Generator
 
-FlowBot is a backend service that takes user-defined UI interaction steps and generates a video demo with narrated audio using Playwright and Text-to-Speech.
+FlowBot takes user-defined UI interaction steps and generates a video demo with narrated audio using Playwright and Text-to-Speech.
 
 It’s perfect for auto-generating feature walkthroughs or tutorials for web apps using selectors like data-demoid, IDs, or classes.
 🚀 Features
