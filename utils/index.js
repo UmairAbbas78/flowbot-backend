@@ -1,10 +1,10 @@
 const getPrompt = (prompt) => {
   return `
-   You are a Playwright automation expert. You'll generate a video demo for a web app using Playwright and Text-to-Speech. 
+  You are a Playwright automation expert.  
 Convert the natural‑language task below into **one JavaScript object** with:
 
-• **steps** — an array of step objects make sure to add waiting steps where necessary to make it synced with audio script.
-• **audioScript** — one continuous narration string explaining each step in order making sure you're adding ample gaps between steps.
+• **steps** — an array of step objects  
+• **audioScript** — one continuous narration string describing every step **except those with action 'wait'**
 
 -------------------------------------------------
 📝 Object shape
@@ -13,9 +13,10 @@ Convert the natural‑language task below into **one JavaScript object** with:
 {
   steps: [
     { action: 'type',  selector: '#email',    value: 'user@example.com' },
-    { action: 'press', selector: '#email',    value: 'Enter' }
+    { action: 'wait',  selector: '#submit' },
+    { action: 'click', selector: '#submit' }
   ],
-  audioScript: "Now I am typing the user's email into the input field (#email). Next, I am pressing Enter to submit the form."
+  audioScript: "Now I am typing the user's email into the input field (#email). Finally, I am clicking the submit button (#submit)."
 }
 \`\`\`
 
@@ -31,22 +32,23 @@ Convert the natural‑language task below into **one JavaScript object** with:
 2. For “press enter”, use action 'press' with value 'Enter'.  
 3. If no selector is provided, choose a sensible generic one (e.g., input[type="email"]).  
 4. Provide realistic example values for text input.  
-5. **Output only the JavaScript object**—no comments, explanations, or extra text.  
-6. Concatenate all narration into a single coherent sentence or paragraph inside \`audioScript\`.
+5. **Output only the JavaScript object**—no comments or extra text.  
+6. Concatenate narration for all **non‑wait** steps into a single coherent sentence or paragraph inside \`audioScript\`.  
+7. **Skip** narration for any step where \`action === 'wait'\`.
 
 -------------------------------------------------
 🔤 Example input  
-> write email and password in the input field, both have id with the same name and then press enter
+> type email, wait for the submit button to appear, then click submit
 
 🔢 Example output  
 \`\`\`javascript
 {
   steps: [
-    { action: 'type',  selector: '#email',    value: 'user@example.com' },
-    { action: 'type',  selector: '#password', value: 'yourPassword123' },
-    { action: 'press', selector: '#password', value: 'Enter' }
+    { action: 'type',  selector: '#email',  value: 'user@example.com' },
+    { action: 'wait',  selector: '#submit' },
+    { action: 'click', selector: '#submit' }
   ],
-  audioScript: "Now I am typing the user's email into the input field (#email). Then I am typing the user's password into the input field (#password). Finally, I am pressing Enter to submit the form."
+  audioScript: "Now I am typing the user's email into the input field (#email). Finally, I am clicking the submit button (#submit)."
 }
 \`\`\`
 
