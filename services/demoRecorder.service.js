@@ -7,6 +7,7 @@ if (!fs.existsSync(VIDEO_DIR)) {
   fs.mkdirSync(VIDEO_DIR);
 }
 
+const stepDelay = (ms = 1000) => new Promise(r => setTimeout(r, ms));
 const runDemo = async ({ url, steps }) => {
   const browser = await chromium.launch();
   const context = await browser.newContext({
@@ -32,11 +33,14 @@ const runDemo = async ({ url, steps }) => {
         } else if (step.action === "type") {
           await page.fill(step.selector, step.value);
         } else if (step.action === "wait") {
-          await page.waitForSelector(step.selector, { timeout: 10000 });
+          // should need to discuss if we are adding delay after every step so we need this step ?
+          // waitForTimeout is not helping in our case
+          // await page.waitForTimeout((step.value || 1000) * 60);
         } else if (step.action === "press") {
           await page.press(step.selector, step.value);
         }
-        await page.waitForTimeout(500); // short delay between actions
+        await stepDelay(5000); // short delay between actions
+        // await page.waitForTimeout(500); // short delay between actions
       } catch (err) {
         console.warn(
           `⚠️ Failed step: ${JSON.stringify(step)} — ${err.message}`
