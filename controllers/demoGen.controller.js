@@ -36,7 +36,12 @@ exports.triggerDemo = async (req, res) => {
     console.log("Explanation:", explanation);
     const raw = parseAutomationSnippet(explanation);
     console.log("Steps:", raw);
-    const demoDoc = new Demo({ prompt, explanation: raw.explanation, url, appName });
+    const demoDoc = new Demo({
+      prompt,
+      explanation: raw.explanation,
+      url,
+      appName,
+    });
     await demoDoc.save({ session });
 
     const videoPath = await runDemo({
@@ -88,7 +93,12 @@ exports.recordManualDemo = async (req, res) => {
 
   try {
     // Save base demo entry
-    const demoDoc = new Demo({ url, explanation, prompt:steps.join("\n"), appName: "manual" });
+    const demoDoc = new Demo({
+      url,
+      explanation,
+      prompt: steps.join("\n"),
+      appName: "manual" + new Date().toUTCString(),
+    });
     await demoDoc.save();
 
     // Step 1: Record video
@@ -120,7 +130,6 @@ exports.recordManualDemo = async (req, res) => {
     res.status(500).json({ error: "Failed to record demo" });
   }
 };
-
 
 exports.getAllDemos = async (req, res) => {
   try {
