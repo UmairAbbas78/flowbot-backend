@@ -12,6 +12,7 @@ const {
   convertAIResponseToSteps,
   parseAutomationSnippet,
 } = require("../utils");
+const { startSession } = require("mongoose");
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.triggerDemo = async (req, res) => {
@@ -19,6 +20,10 @@ exports.triggerDemo = async (req, res) => {
 
   console.log("Generating your demo....");
   console.log(JSON.stringify({ url, prompt }, null, 2));
+
+  // Start a mongoose session for transaction
+  const session = await startSession();
+  session.startTransaction();
 
   try {
     const model = gemini.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -31,8 +36,13 @@ exports.triggerDemo = async (req, res) => {
     console.log("Explanation:", explanation);
     const raw = parseAutomationSnippet(explanation);
     console.log("Steps:", raw);
-    const demoDoc = new Demo({ prompt, explanation: raw.explanation, url, appName });
-    await demoDoc.save();
+    const demoDoc = new Demo({
+      prompt,
+      explanation: raw.explanation,
+      url,
+      appName,
+    });
+    await demoDoc.save({ session });
 
     const videoPath = await runDemo({
       url,
@@ -53,7 +63,10 @@ exports.triggerDemo = async (req, res) => {
     await mergeAudioWithVideo(videoPath, audioPath, finalVideoPath);
 
     demoDoc.videoPath = `/videos/${path.basename(finalVideoPath)}`;
-    await demoDoc.save();
+    await demoDoc.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({
       id: demoDoc._id,
@@ -62,6 +75,8 @@ exports.triggerDemo = async (req, res) => {
       video: `/videos/${demoDoc._id}.webm`,
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(err);
     res.status(500).json({ error: "Demo generation failed" });
   }
@@ -78,7 +93,12 @@ exports.recordManualDemo = async (req, res) => {
 
   try {
     // Save base demo entry
-    const demoDoc = new Demo({ url, explanation, prompt:steps.join("\n"), appName: "manual" });
+    const demoDoc = new Demo({
+      url,
+      explanation,
+      prompt: steps.join("\n"),
+      appName: "manual" + new Date().toUTCString(),
+    });
     await demoDoc.save();
 
     // Step 1: Record video
@@ -110,7 +130,6 @@ exports.recordManualDemo = async (req, res) => {
     res.status(500).json({ error: "Failed to record demo" });
   }
 };
-
 
 exports.getAllDemos = async (req, res) => {
   try {

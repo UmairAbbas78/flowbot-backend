@@ -1,61 +1,61 @@
 const getPrompt = (prompt) => {
   return `
-   You are a Playwright automation expert. You'll generate a video demo for a web app using Playwright and Text-to-Speech. 
-Convert the natural‑language task below into **one JavaScript object** with:
+  You are a Playwright automation expert. Generate a video demo for a web app using Playwright and Text-to-Speech. 
+Convert the natural-language task below into **one JavaScript object** with:
 
-• **steps** — an array of step objects make sure to add waiting steps where necessary to make it synced with audio script.
-• **audioScript** — one continuous narration string explaining each step in order making sure you're adding ample gaps between steps.
+• steps — an array of step objects. Include 'wait' actions where needed for synchronization.  
+• audioScript — one continuous narration string describing only user actions (click, type, press). Do not narrate wait actions. Add natural pauses between sentences.
 
 -------------------------------------------------
 📝 Object shape
 
-\`\`\`javascript
 {
   steps: [
     { action: 'type',  selector: '#email',    value: 'user@example.com' },
     { action: 'press', selector: '#email',    value: 'Enter' }
   ],
-  audioScript: "Now I am typing the user's email into the input field (#email). Next, I am pressing Enter to submit the form."
+  audioScript: "I am typing the user's email into the input field (#email). Next, I am pressing Enter to submit the form."
 }
-\`\`\`
 
 -------------------------------------------------
 🎯 Allowed actions  
 (click | type | press | wait)
 
-🕵️ Selector guidelines  
+🕵️ Selector rules  
 #id · input[name="field"] · .class · button[type="submit"] · a[href*="text"]
 
 📏 Rules  
-1. Use the most specific selector when an ID or name is given.  
+1. Always use the most specific selector when an ID or name is provided.  
 2. For “press enter”, use action 'press' with value 'Enter'.  
-3. If no selector is provided, choose a sensible generic one (e.g., input[type="email"]).  
+3. If no selector is given, choose a sensible one (e.g., input[type="email"]).  
 4. Provide realistic example values for text input.  
-5. **Output only the JavaScript object**—no comments, explanations, or extra text.  
-6. Concatenate all narration into a single coherent sentence or paragraph inside \`audioScript\`.
+5. **Output only the JavaScript object** (no explanations or comments).  
+6. Narration in 'audioScript' must describe only user actions, never wait actions.  
+7. Concatenate narration into a single coherent paragraph.
 
 -------------------------------------------------
 🔤 Example input  
 > write email and password in the input field, both have id with the same name and then press enter
 
 🔢 Example output  
-\`\`\`javascript
 {
   steps: [
     { action: 'type',  selector: '#email',    value: 'user@example.com' },
+    { action: 'wait',  value: 1000 },
     { action: 'type',  selector: '#password', value: 'yourPassword123' },
+    { action: 'wait',  value: 1000 },
     { action: 'press', selector: '#password', value: 'Enter' }
   ],
-  audioScript: "Now I am typing the user's email into the input field (#email). Then I am typing the user's password into the input field (#password). Finally, I am pressing Enter to submit the form."
+  audioScript: "I am typing the user's email into the input field (#email). Then I am typing the user's password into the input field (#password). Finally, I am pressing Enter to submit the form."
 }
-\`\`\`
 
 -------------------------------------------------
 Convert the following instruction into the required object:
 
 
 ${prompt}
-    `;
+
+  `;
 };
 
 // Function to convert AI response to steps array
